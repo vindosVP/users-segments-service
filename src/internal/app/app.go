@@ -10,6 +10,7 @@ import (
 	"users-segments-service/internal/usecase"
 	"users-segments-service/internal/usecase/segment_repo"
 	"users-segments-service/internal/usecase/user_repo"
+	"users-segments-service/internal/usecase/usersSegment_repo"
 	"users-segments-service/pkg/database"
 	"users-segments-service/pkg/logger"
 	"users-segments-service/pkg/validations"
@@ -41,8 +42,9 @@ func Run(config *config.Config) {
 
 	userUseCase := usecase.NewUserUseCase(user_repo.New(db))
 	segmentUseCase := usecase.NewSegmentUseCase(segment_repo.New(db))
+	usersSegmentUseCase := usecase.NewUsersSegmentUseCase(usersSegment_repo.New(db))
 
-	v1.SetupRoutes(handler, userUseCase, segmentUseCase, lg)
+	v1.SetupRoutes(handler, userUseCase, segmentUseCase, usersSegmentUseCase, lg)
 	if err := handler.Listen(":" + config.App.Port); err != nil {
 		lg.Fatal(fmt.Errorf("app - Run - handler.Listen: %w", err))
 	}

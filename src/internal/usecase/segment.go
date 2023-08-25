@@ -29,3 +29,7 @@ func (s SegmentUseCase) Create(slug string) (*entity.Segment, error) {
 		Slug: slug,
 	})
 }
+
+func (s SegmentUseCase) SegmentExists(slug string) (bool, error) {
+	return s.segmentRepo.SegmentExists(slug)
+}

@@ -8,6 +8,8 @@ import (
 	"users-segments-service/internal/entity"
 )
 
+var DB *gorm.DB
+
 func NewGorm(cfg config.DB) (*gorm.DB, error) {
 	dns := generateGormDNS(cfg)
 
@@ -38,6 +40,7 @@ func autoMigrate(db *gorm.DB) error {
 	if err := db.AutoMigrate(&entity.SegmentUser{}); err != nil {
 		return fmt.Errorf("database - autoMigrate - db.AutoMigrate: %w", err)
 	}
+	DB = db
 
 	return nil
 }

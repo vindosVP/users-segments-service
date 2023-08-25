@@ -5,4 +5,5 @@ const (
 	MsgNotValid             = "Validation error"
 	MsgUserAlreadyExists    = "User with this email already exists"
 	MsgSegmentAlreadyExists = "Segment with this slug already exists"
+	MsgFailedToParseID      = "Failed to parse ID"
 )

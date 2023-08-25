@@ -24,3 +24,9 @@ func (u *UserRepository) UserExists(email string) (bool, error) {
 	err := u.db.Model(&entity.User{}).Where("email = ?", email).Count(&count).Error
 	return count > 0, err
 }
+
+func (u *UserRepository) UserExistsByID(userID uint) (bool, error) {
+	var count int64
+	err := u.db.Model(&entity.User{}).Where("id = ?", userID).Count(&count).Error
+	return count > 0, err
+}

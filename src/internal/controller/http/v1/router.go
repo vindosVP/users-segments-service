@@ -15,7 +15,7 @@ import (
 // @version     1.0
 // @host        localhost:8080
 // @BasePath    /v1
-func SetupRoutes(handler *fiber.App, u usecase.User, s usecase.Segment, l logger.Interface) {
+func SetupRoutes(handler *fiber.App, u usecase.User, s usecase.Segment, us usecase.UsersSegment, l logger.Interface) {
 
 	handler.Get("/swagger/*", swagger.HandlerDefault)
 
@@ -25,4 +25,5 @@ func SetupRoutes(handler *fiber.App, u usecase.User, s usecase.Segment, l logger
 	})
 	SetUserRoutes(h, u, l)
 	SetSegmentRoutes(h, s, l)
+	SetUsersSegmentsRoutes(h, u, s, us, l)
 }
