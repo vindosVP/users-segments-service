@@ -1,0 +1,147 @@
+basePath: /v1
+definitions:
+  v1.Response:
+    properties:
+      data: {}
+      error: {}
+      message:
+        type: string
+      status_code:
+        type: integer
+    type: object
+  v1.createSegmentRequest:
+    properties:
+      slug:
+        example: AVITO_VOICE_MESSAGES
+        type: string
+    required:
+    - slug
+    type: object
+  v1.createSegmentResponse:
+    properties:
+      id:
+        example: 1
+        type: integer
+      slug:
+        example: AVITO_VOICE_MESSAGES
+        type: string
+    required:
+    - id
+    - slug
+    type: object
+  v1.registerUserRequest:
+    properties:
+      email:
+        example: vadiminmail@gmail.com
+        type: string
+      lastName:
+        example: Valov
+        type: string
+      name:
+        example: Vadim
+        type: string
+    required:
+    - email
+    - lastName
+    - name
+    type: object
+  v1.registerUserResponse:
+    properties:
+      email:
+        example: vadiminmail@gmail.com
+        type: string
+      id:
+        example: 1
+        type: integer
+      lastName:
+        example: Valov
+        type: string
+      name:
+        example: Vadim
+        type: string
+    required:
+    - email
+    - id
+    - lastName
+    - name
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Users segments
+  title: Users segments service API
+  version: "1.0"
+paths:
+  /segments:
+    post:
+      consumes:
+      - application/json
+      description: Create a new segment
+      operationId: create
+      parameters:
+      - description: Segment data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.createSegmentRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/v1.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/v1.createSegmentResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Create
+      tags:
+      - segments
+  /users:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user
+      operationId: register
+      parameters:
+      - description: User data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.registerUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/v1.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/v1.registerUserResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Register
+      tags:
+      - users
+swagger: "2.0"
