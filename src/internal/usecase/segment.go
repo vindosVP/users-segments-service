@@ -33,3 +33,11 @@ func (s SegmentUseCase) Create(slug string) (*entity.Segment, error) {
 func (s SegmentUseCase) SegmentExists(slug string) (bool, error) {
 	return s.segmentRepo.SegmentExists(slug)
 }
+
+func (s SegmentUseCase) GetSegments() ([]entity.Segment, error) {
+	return s.segmentRepo.GetSegments()
+}
+
+func (s SegmentUseCase) Delete(slug string) error {
+	return s.segmentRepo.Delete(slug)
+}

@@ -24,6 +24,6 @@ func SetupRoutes(handler *fiber.App, u usecase.User, s usecase.Segment, us useca
 		return ctx.SendStatus(fiber.StatusOK)
 	})
 	SetUserRoutes(h, u, l)
-	SetSegmentRoutes(h, s, l)
+	SetSegmentRoutes(h, s, us, l)
 	SetUsersSegmentsRoutes(h, u, s, us, l)
 }

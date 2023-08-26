@@ -29,6 +29,18 @@ definitions:
     - id
     - slug
     type: object
+  v1.modifyUsersSegmentsRequest:
+    properties:
+      segments:
+        example:
+        - AVITO_VOICE_MESSAGES
+        - AVITO_PERFORMANCE_VAS
+        items:
+          type: string
+        type: array
+    required:
+    - segments
+    type: object
   v1.registerUserRequest:
     properties:
       email:
@@ -65,6 +77,25 @@ definitions:
     - lastName
     - name
     type: object
+  v1.segmentsResponse:
+    properties:
+      segments:
+        example:
+        - AVITO_VOICE_MESSAGES
+        items:
+          type: string
+        type: array
+    type: object
+  v1.usersSegmentsResponse:
+    properties:
+      usersSegments:
+        example:
+        - AVITO_VOICE_MESSAGES
+        - AVITO_PERFORMANCE_VAS
+        items:
+          type: string
+        type: array
+    type: object
 host: localhost:8080
 info:
   contact: {}
@@ -73,6 +104,34 @@ info:
   version: "1.0"
 paths:
   /segments:
+    get:
+      consumes:
+      - application/json
+      description: Returns all segments
+      operationId: getSegments
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/v1.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/v1.segmentsResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Get
+      tags:
+      - segments
     post:
       consumes:
       - application/json
@@ -106,6 +165,37 @@ paths:
           schema:
             $ref: '#/definitions/v1.Response'
       summary: Create
+      tags:
+      - segments
+  /segments/:segmentSlug:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes segment and all users from it
+      operationId: delete
+      parameters:
+      - description: segment ID
+        example: "1"
+        in: path
+        name: segmentSlug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Delete
       tags:
       - segments
   /users:
@@ -142,6 +232,126 @@ paths:
           schema:
             $ref: '#/definitions/v1.Response'
       summary: Register
+      tags:
+      - users
+  /users/:userID/segments:
+    get:
+      consumes:
+      - application/json
+      description: Returns all users segments
+      operationId: getUsersSegments
+      parameters:
+      - description: user ID
+        example: "1"
+        in: path
+        name: userID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/v1.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/v1.usersSegmentsResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Get users segments
+      tags:
+      - users
+  /users/:userID/segments/add:
+    post:
+      consumes:
+      - application/json
+      description: Adds user to segments
+      operationId: add
+      parameters:
+      - description: Segments to add
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.modifyUsersSegmentsRequest'
+      - description: user ID
+        example: "1"
+        in: path
+        name: userID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/v1.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/v1.usersSegmentsResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Add to segments
+      tags:
+      - users
+  /users/:userID/segments/delete:
+    post:
+      consumes:
+      - application/json
+      description: Deletes user from segment
+      operationId: deleteFromSegment
+      parameters:
+      - description: Segments to delete
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.modifyUsersSegmentsRequest'
+      - description: user ID
+        example: "1"
+        in: path
+        name: userID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/v1.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/v1.usersSegmentsResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Delete from segment
       tags:
       - users
 swagger: "2.0"

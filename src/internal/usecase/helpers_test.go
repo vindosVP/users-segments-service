@@ -6,14 +6,16 @@ import (
 	"users-segments-service/config"
 	"users-segments-service/internal/usecase/segment_repo"
 	"users-segments-service/internal/usecase/user_repo"
+	"users-segments-service/internal/usecase/usersSegment_repo"
 	"users-segments-service/pkg/database"
 	"users-segments-service/pkg/validations"
 )
 
 type TestData struct {
-	db             *gorm.DB
-	userUseCase    *UserUseCase
-	segmentUseCase *SegmentUseCase
+	db                  *gorm.DB
+	userUseCase         *UserUseCase
+	segmentUseCase      *SegmentUseCase
+	usersSegmentUseCase *UsersSegmentUseCase
 }
 
 var TestsContext *TestData
@@ -36,11 +38,13 @@ func Prepare(t *testing.T) {
 	truncateTables(db)
 	userUseCase := NewUserUseCase(user_repo.New(db))
 	segmentUseCase := NewSegmentUseCase(segment_repo.New(db))
+	usersSegmentUseCase := NewUsersSegmentUseCase(usersSegment_repo.New(db))
 
 	testData := &TestData{
-		db:             db,
-		userUseCase:    userUseCase,
-		segmentUseCase: segmentUseCase,
+		db:                  db,
+		userUseCase:         userUseCase,
+		segmentUseCase:      segmentUseCase,
+		usersSegmentUseCase: usersSegmentUseCase,
 	}
 
 	TestsContext = testData

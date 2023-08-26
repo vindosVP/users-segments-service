@@ -41,7 +41,7 @@ func SetUserRoutes(handler fiber.Router, u usecase.User, l logger.Interface) {
 // @Accept      json
 // @Produce     json
 // @Param       request body registerUserRequest true "User data"
-// @Success     201 {object} Response{data=registerUserResponse, error=null}
+// @Success     201 {object} Response{data=registerUserResponse}
 // @Failure     400 {object} Response
 // @Failure     500 {object} Response
 // @Router      /users [post]
