@@ -20,3 +20,17 @@ func TestCreateSegment(t *testing.T) {
 	segment, err = testData.segmentUseCase.Create(slug)
 	assert.Equal(t, err, ErrorSegmentAlreadyExists)
 }
+
+func TestDeleteSegment(t *testing.T) {
+	Prepare(t)
+	testData := TestsContext
+
+	slug := "AVITO_VOICE_MESSAGES"
+
+	_, err := testData.segmentUseCase.Create(slug)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = testData.segmentUseCase.Delete(slug)
+	assert.Equal(t, err, nil)
+}

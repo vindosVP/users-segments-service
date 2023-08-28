@@ -34,9 +34,6 @@ func autoMigrate(db *gorm.DB) error {
 	if err := db.AutoMigrate(&entity.Segment{}); err != nil {
 		return fmt.Errorf("database - autoMigrate - db.AutoMigrate: %w", err)
 	}
-	if err := db.AutoMigrate(&entity.SegmentOperation{}); err != nil {
-		return fmt.Errorf("database - autoMigrate - db.AutoMigrate: %w", err)
-	}
 	if err := db.AutoMigrate(&entity.SegmentUser{}); err != nil {
 		return fmt.Errorf("database - autoMigrate - db.AutoMigrate: %w", err)
 	}
@@ -50,5 +47,5 @@ func generateGormDNS(cfg config.DB) string {
 		return cfg.DNS
 	}
 
-	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s", cfg.Host, cfg.Port, cfg.User, cfg.Pwd, cfg.Name, cfg.SSLMode)
+	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s TimeZone=%s", cfg.Host, cfg.Port, cfg.User, cfg.Pwd, cfg.Name, cfg.SSLMode, cfg.TimeZone)
 }
