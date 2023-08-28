@@ -24,3 +24,14 @@ func (u *SegmentRepository) SegmentExists(slug string) (bool, error) {
 	err := u.db.Model(&entity.Segment{}).Where("slug = ?", slug).Count(&count).Error
 	return count > 0, err
 }
+
+func (u *SegmentRepository) GetSegments() ([]entity.Segment, error) {
+	var segments []entity.Segment
+	err := u.db.Model(&entity.Segment{}).Find(&segments).Error
+	return segments, err
+}
+
+func (u *SegmentRepository) Delete(slug string) error {
+	err := u.db.Where("slug = ?", slug).Delete(&entity.Segment{}).Error
+	return err
+}

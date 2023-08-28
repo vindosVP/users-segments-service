@@ -10,6 +10,52 @@
     "basePath": "/v1",
     "paths": {
         "/segments": {
+            "get": {
+                "description": "Returns all segments",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "segments"
+                ],
+                "summary": "Get",
+                "operationId": "getSegments",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/v1.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/v1.segmentsResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "Create a new segment",
                 "consumes": [
@@ -51,6 +97,52 @@
                                     }
                                 }
                             ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/segments/:segmentSlug": {
+            "delete": {
+                "description": "Deletes segment and all users from it",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "segments"
+                ],
+                "summary": "Delete",
+                "operationId": "delete",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "1",
+                        "description": "segment ID",
+                        "name": "segmentSlug",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
                         }
                     },
                     "400": {
@@ -126,6 +218,198 @@
                     }
                 }
             }
+        },
+        "/users/:userID/segments": {
+            "get": {
+                "description": "Returns all users segments",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get users segments",
+                "operationId": "getUsersSegments",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "1",
+                        "description": "user ID",
+                        "name": "userID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/v1.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/v1.usersSegmentsResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/:userID/segments/add": {
+            "post": {
+                "description": "Adds user to segments",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Add to segments",
+                "operationId": "add",
+                "parameters": [
+                    {
+                        "description": "Segments to add",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.modifyUsersSegmentsRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "example": "1",
+                        "description": "user ID",
+                        "name": "userID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/v1.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/v1.usersSegmentsResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/:userID/segments/delete": {
+            "post": {
+                "description": "Deletes user from segment",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Delete from segment",
+                "operationId": "deleteFromSegment",
+                "parameters": [
+                    {
+                        "description": "Segments to delete",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.modifyUsersSegmentsRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "example": "1",
+                        "description": "user ID",
+                        "name": "userID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/v1.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/v1.usersSegmentsResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -168,6 +452,24 @@
                 "slug": {
                     "type": "string",
                     "example": "AVITO_VOICE_MESSAGES"
+                }
+            }
+        },
+        "v1.modifyUsersSegmentsRequest": {
+            "type": "object",
+            "required": [
+                "segments"
+            ],
+            "properties": {
+                "segments": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "AVITO_VOICE_MESSAGES",
+                        "AVITO_PERFORMANCE_VAS"
+                    ]
                 }
             }
         },
@@ -217,6 +519,35 @@
                 "name": {
                     "type": "string",
                     "example": "Vadim"
+                }
+            }
+        },
+        "v1.segmentsResponse": {
+            "type": "object",
+            "properties": {
+                "segments": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "AVITO_VOICE_MESSAGES"
+                    ]
+                }
+            }
+        },
+        "v1.usersSegmentsResponse": {
+            "type": "object",
+            "properties": {
+                "usersSegments": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "AVITO_VOICE_MESSAGES",
+                        "AVITO_PERFORMANCE_VAS"
+                    ]
                 }
             }
         }

@@ -31,3 +31,7 @@ func (u UserUseCase) Register(email string, name string, lastName string) (*enti
 		LastName: lastName,
 	})
 }
+
+func (u UserUseCase) UserExistsByID(userID uint) (bool, error) {
+	return u.userRepo.UserExistsByID(userID)
+}

@@ -13,13 +13,14 @@ type App struct {
 }
 
 type DB struct {
-	Host    string `env:"DB_HOST" envDefault:"localhost"`
-	Port    string `env:"DB_PORT" envDefault:"5432"`
-	User    string `env:"DB_USER"`
-	Pwd     string `env:"DB_PWD"`
-	Name    string `env:"DB_NAME" envDefault:"users-segments"`
-	SSLMode string `env:"DB_SSL_MODE" envDefault:"disable"`
-	DNS     string `env:"DB_DNS"`
+	Host     string `env:"DB_HOST" envDefault:"localhost"`
+	Port     string `env:"DB_PORT" envDefault:"5432"`
+	User     string `env:"DB_USER"`
+	Pwd      string `env:"DB_PWD"`
+	Name     string `env:"DB_NAME" envDefault:"users-segments"`
+	SSLMode  string `env:"DB_SSL_MODE" envDefault:"disable"`
+	DNS      string `env:"DB_DNS"`
+	TimeZone string `env:"DB_TIMEZONE" envDefault:"Europe/Moscow"`
 }
 
 type Log struct {
