@@ -1,10 +1,14 @@
 package v1
 
 import (
+	"bytes"
+	"encoding/csv"
 	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 	"strconv"
+	"time"
+	"users-segments-service/internal/clients"
 	"users-segments-service/internal/controller/http/v1/middleware"
 	"users-segments-service/internal/usecase"
 	"users-segments-service/pkg/database"
@@ -16,6 +20,7 @@ type UsersSegmentsRoutes struct {
 	u  usecase.User
 	s  usecase.Segment
 	us usecase.UsersSegment
+	ps *clients.PastebinClient
 	l  logger.Interface
 }
 
@@ -27,17 +32,112 @@ type usersSegmentsResponse struct {
 	UsersSegments []string `json:"usersSegments" example:"AVITO_VOICE_MESSAGES,AVITO_PERFORMANCE_VAS"`
 }
 
-func SetUsersSegmentsRoutes(handler fiber.Router, u usecase.User, s usecase.Segment, us usecase.UsersSegment, l logger.Interface) {
+func SetUsersSegmentsRoutes(handler fiber.Router, u usecase.User, s usecase.Segment, us usecase.UsersSegment, ps *clients.PastebinClient, l logger.Interface) {
 	r := &UsersSegmentsRoutes{
 		u:  u,
 		s:  s,
 		us: us,
+		ps: ps,
 		l:  l,
 	}
 	h := handler.Group("/users")
 	h.Get("/:userID/segments", r.get)
 	h.Post("/:userID/segments/add", middleware.GormTransaction(database.DB, l), r.add)
 	h.Post("/:userID/segments/delete", middleware.GormTransaction(database.DB, l), r.delete)
+	h.Get("/:userID/segments/report", r.report)
+}
+
+// @Summary     Get users segments report
+// @Description Returns link to a csv with user segments report
+// @ID          getUsersSegmentsReport
+// @Tags  	    users
+// @Accept      json
+// @Produce     json
+// @Param 		userID path string true "user ID" example(1)
+// @Param 		month query string true "month" example(8)
+// @Param 		year query string true "year" example(2023)
+// @Success     200 {object} Response
+// @Failure     400 {object} Response
+// @Failure     500 {object} Response
+// @Router      /users/:userID/segments/report [get]
+func (usr *UsersSegmentsRoutes) report(c *fiber.Ctx) error {
+
+	month := c.Query("month")
+	if month == "" {
+		return ErrorResponse(c, fiber.StatusBadRequest, "No month specified", nil, nil)
+	}
+	year := c.Query("year")
+	if year == "" {
+		return ErrorResponse(c, fiber.StatusBadRequest, "No year specified", nil, nil)
+	}
+
+	yearInt, err := strconv.Atoi(year)
+	if err != nil {
+		return ErrorResponse(c, fiber.StatusBadRequest, "Failed to parse year", nil, nil)
+	}
+
+	monthInt, err := strconv.Atoi(month)
+	if err != nil {
+		return ErrorResponse(c, fiber.StatusBadRequest, "Failed to parse month", nil, nil)
+	}
+	location, err := time.LoadLocation("Europe/Moscow")
+	if err != nil {
+		return ErrorResponse(c, fiber.StatusInternalServerError, "Failed to load location", nil, nil)
+	}
+
+	startTime := time.Date(yearInt, time.Month(monthInt), 1, 0, 0, 1, 0, location)
+	endTime := startTime.AddDate(0, 1, 0)
+
+	userID, err := strconv.ParseUint(c.Params("userID"), 10, 32)
+	if err != nil {
+		usr.l.Error(err, "v1 - report - strconv.ParseUint")
+		return ErrorResponse(c, fiber.StatusInternalServerError, MsgFailedToParseID, nil, err)
+	}
+
+	userExists, err := usr.u.UserExistsByID(uint(userID))
+	if err != nil && err != gorm.ErrRecordNotFound {
+		usr.l.Error(err, "v1 - report - usr.u.UserExistsByID")
+		return ErrorResponse(c, fiber.StatusInternalServerError, "Failed to check if user exists", nil, err)
+	}
+	if !userExists {
+		return ErrorResponse(c, fiber.StatusBadRequest, fmt.Sprintf("User with ID %d does not exist", userID), nil, ErrorUserDoesNotExist)
+	}
+
+	report, err := usr.us.Report(uint(userID), startTime, endTime)
+	if err != nil && err != gorm.ErrRecordNotFound {
+		usr.l.Error(err, "v1 - report - usr.us.Report")
+		return ErrorResponse(c, fiber.StatusInternalServerError, "Failed to get report", nil, err)
+	}
+
+	csvData := [][]string{{"UserID", "Segment", "Operation", "Time"}}
+
+	for _, line := range report {
+		sliceLine := []string{strconv.FormatInt(line.UserID, 10), line.Segment, line.Operation, line.Time.Format("2006-01-02 15:04:05")}
+		csvData = append(csvData, sliceLine)
+	}
+
+	buf := new(bytes.Buffer)
+	wr := csv.NewWriter(buf)
+	err = wr.WriteAll(csvData)
+	if err != nil {
+		usr.l.Error(err, "v1 - report - uwr.WriteAll")
+		return ErrorResponse(c, fiber.StatusInternalServerError, "Failed to write scv", nil, err)
+	}
+	csvString := buf.String()
+	pasteTitle := fmt.Sprintf(
+		"Report for user %d created at %s (%s - %s)",
+		userID,
+		time.Now().Format("2006-01-02 15:04:05"),
+		startTime.Format("2006-01-02 15:04:05"),
+		endTime.Format("2006-01-02 15:04:05"))
+
+	pasteLink, err := usr.ps.Post(pasteTitle, csvString)
+	if err != nil {
+		usr.l.Error(err, "v1 - report - usr.ps.Post")
+		return ErrorResponse(c, fiber.StatusInternalServerError, "Failed to post report", nil, err)
+	}
+
+	return OkResponse(c, fiber.StatusOK, "OK", pasteLink)
 }
 
 // @Summary     Get users segments

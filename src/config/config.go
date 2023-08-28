@@ -9,7 +9,10 @@ type Config struct {
 }
 
 type App struct {
-	Port string `env:"APP_PORT" envDefault:"8080"`
+	Port          string `env:"APP_PORT" envDefault:"8080"`
+	PastebinLogin string `env:"PASTEBIN_LOGIN"`
+	PastebinPwd   string `env:"PASTEBIN_PWD"`
+	PastebinToken string `env:"PASTEBIN_TOKEN"`
 }
 
 type DB struct {

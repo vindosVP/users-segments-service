@@ -354,4 +354,47 @@ paths:
       summary: Delete from segment
       tags:
       - users
+  /users/:userID/segments/report:
+    get:
+      consumes:
+      - application/json
+      description: Returns link to a csv with user segments report
+      operationId: getUsersSegmentsReport
+      parameters:
+      - description: user ID
+        example: "1"
+        in: path
+        name: userID
+        required: true
+        type: string
+      - description: month
+        example: "8"
+        in: query
+        name: month
+        required: true
+        type: string
+      - description: year
+        example: "2023"
+        in: query
+        name: year
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Get users segments report
+      tags:
+      - users
 swagger: "2.0"

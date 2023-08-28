@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"time"
 	"users-segments-service/internal/entity"
 )
 
@@ -22,6 +23,7 @@ type UsersSegment interface {
 	SegmentBySlug(slug string) (*entity.Segment, error)
 	DeleteAllUsersFromSegment(segmentID uint) error
 	DeleteUsersSegment(userID uint, segmentSlug string) error
+	Report(userID uint, startTime time.Time, endTime time.Time) ([]entity.UsersSegmentOperation, error)
 }
 
 type UserRepo interface {
@@ -44,4 +46,5 @@ type UsersSegmentRepo interface {
 	GetUsersSegments(userID uint) ([]string, error)
 	DeleteAllUsersFromSegment(segmentID uint) error
 	DeleteUsersSegment(usersSegment *entity.SegmentUser) error
+	Report(userID uint, startTime time.Time, endTime time.Time) ([]entity.UsersSegmentOperation, error)
 }

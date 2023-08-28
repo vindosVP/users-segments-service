@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"time"
 	"users-segments-service/internal/entity"
 )
 
@@ -12,6 +13,10 @@ func NewUsersSegmentUseCase(usr UsersSegmentRepo) *UsersSegmentUseCase {
 	return &UsersSegmentUseCase{
 		usersSegmentRepo: usr,
 	}
+}
+
+func (us *UsersSegmentUseCase) Report(userID uint, startTime time.Time, endTime time.Time) ([]entity.UsersSegmentOperation, error) {
+	return us.usersSegmentRepo.Report(userID, startTime, endTime)
 }
 
 func (us *UsersSegmentUseCase) AddUserToSegment(userID uint, segmentSlug string) (*entity.SegmentUser, error) {
