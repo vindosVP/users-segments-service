@@ -6,9 +6,9 @@ import (
 	fiberlog "github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"users-segments-service/config"
-	"users-segments-service/internal/clients"
 	v1 "users-segments-service/internal/controller/http/v1"
 	"users-segments-service/internal/usecase"
+	"users-segments-service/internal/usecase/reports_repo"
 	"users-segments-service/internal/usecase/segment_repo"
 	"users-segments-service/internal/usecase/user_repo"
 	"users-segments-service/internal/usecase/usersSegment_repo"
@@ -44,12 +44,12 @@ func Run(config *config.Config) {
 	userUseCase := usecase.NewUserUseCase(user_repo.New(db))
 	segmentUseCase := usecase.NewSegmentUseCase(segment_repo.New(db))
 	usersSegmentUseCase := usecase.NewUsersSegmentUseCase(usersSegment_repo.New(db))
-	pastebinClient, err := clients.NewPastebinClient(config.App.PastebinLogin, config.App.PastebinPwd, config.App.PastebinToken)
+	reportUseCase := usecase.NewReportsUseCase(reports_repo.New(config.App.ReportsDirectory))
 	if err != nil {
 		lg.Fatal("Failed to setup pastebin client")
 	}
 
-	v1.SetupRoutes(handler, userUseCase, segmentUseCase, usersSegmentUseCase, pastebinClient, lg)
+	v1.SetupRoutes(handler, userUseCase, segmentUseCase, usersSegmentUseCase, reportUseCase, config.App.ReportsDirectory, lg)
 	if err := handler.Listen(":" + config.App.Port); err != nil {
 		lg.Fatal(fmt.Errorf("app - Run - handler.Listen: %w", err))
 	}

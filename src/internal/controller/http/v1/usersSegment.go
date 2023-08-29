@@ -1,14 +1,11 @@
 package v1
 
 import (
-	"bytes"
-	"encoding/csv"
 	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 	"strconv"
 	"time"
-	"users-segments-service/internal/clients"
 	"users-segments-service/internal/controller/http/v1/middleware"
 	"users-segments-service/internal/usecase"
 	"users-segments-service/pkg/database"
@@ -20,7 +17,7 @@ type UsersSegmentsRoutes struct {
 	u  usecase.User
 	s  usecase.Segment
 	us usecase.UsersSegment
-	ps *clients.PastebinClient
+	ur usecase.Report
 	l  logger.Interface
 }
 
@@ -32,12 +29,16 @@ type usersSegmentsResponse struct {
 	UsersSegments []string `json:"usersSegments" example:"AVITO_VOICE_MESSAGES,AVITO_PERFORMANCE_VAS"`
 }
 
-func SetUsersSegmentsRoutes(handler fiber.Router, u usecase.User, s usecase.Segment, us usecase.UsersSegment, ps *clients.PastebinClient, l logger.Interface) {
+type ReportResponse struct {
+	FileLink string `json:"fileLink" example:"http://localhost:8080/v1/reports/80ef1ba7-1045-41aa-a8a2-4c0aba407baf"`
+}
+
+func SetUsersSegmentsRoutes(handler fiber.Router, u usecase.User, s usecase.Segment, us usecase.UsersSegment, ur usecase.Report, l logger.Interface) {
 	r := &UsersSegmentsRoutes{
 		u:  u,
 		s:  s,
 		us: us,
-		ps: ps,
+		ur: ur,
 		l:  l,
 	}
 	h := handler.Group("/users")
@@ -56,7 +57,7 @@ func SetUsersSegmentsRoutes(handler fiber.Router, u usecase.User, s usecase.Segm
 // @Param 		userID path string true "user ID" example(1)
 // @Param 		month query string true "month" example(8)
 // @Param 		year query string true "year" example(2023)
-// @Success     200 {object} Response
+// @Success     200 {object} Response{data=ReportResponse}
 // @Failure     400 {object} Response
 // @Failure     500 {object} Response
 // @Router      /users/:userID/segments/report [get]
@@ -88,6 +89,10 @@ func (usr *UsersSegmentsRoutes) report(c *fiber.Ctx) error {
 	startTime := time.Date(yearInt, time.Month(monthInt), 1, 0, 0, 1, 0, location)
 	endTime := startTime.AddDate(0, 1, 0)
 
+	if !(monthInt > 0 && monthInt < 13) {
+		return ErrorResponse(c, fiber.StatusBadRequest, "Wrong month", nil, nil)
+	}
+
 	userID, err := strconv.ParseUint(c.Params("userID"), 10, 32)
 	if err != nil {
 		usr.l.Error(err, "v1 - report - strconv.ParseUint")
@@ -109,35 +114,17 @@ func (usr *UsersSegmentsRoutes) report(c *fiber.Ctx) error {
 		return ErrorResponse(c, fiber.StatusInternalServerError, "Failed to get report", nil, err)
 	}
 
-	csvData := [][]string{{"UserID", "Segment", "Operation", "Time"}}
-
-	for _, line := range report {
-		sliceLine := []string{strconv.FormatInt(line.UserID, 10), line.Segment, line.Operation, line.Time.Format("2006-01-02 15:04:05")}
-		csvData = append(csvData, sliceLine)
-	}
-
-	buf := new(bytes.Buffer)
-	wr := csv.NewWriter(buf)
-	err = wr.WriteAll(csvData)
+	reportFileName, err := usr.ur.SaveReport(report)
 	if err != nil {
-		usr.l.Error(err, "v1 - report - uwr.WriteAll")
-		return ErrorResponse(c, fiber.StatusInternalServerError, "Failed to write scv", nil, err)
-	}
-	csvString := buf.String()
-	pasteTitle := fmt.Sprintf(
-		"Report for user %d created at %s (%s - %s)",
-		userID,
-		time.Now().Format("2006-01-02 15:04:05"),
-		startTime.Format("2006-01-02 15:04:05"),
-		endTime.Format("2006-01-02 15:04:05"))
-
-	pasteLink, err := usr.ps.Post(pasteTitle, csvString)
-	if err != nil {
-		usr.l.Error(err, "v1 - report - usr.ps.Post")
-		return ErrorResponse(c, fiber.StatusInternalServerError, "Failed to post report", nil, err)
+		usr.l.Error(err, "v1 - report - usr.ur.SaveReport")
+		return ErrorResponse(c, fiber.StatusInternalServerError, "Failed to save report", nil, err)
 	}
 
-	return OkResponse(c, fiber.StatusOK, "OK", pasteLink)
+	resp := &ReportResponse{
+		FileLink: fmt.Sprintf("http://localhost:8080/v1/reports/%s", reportFileName),
+	}
+
+	return OkResponse(c, fiber.StatusOK, "OK", resp)
 }
 
 // @Summary     Get users segments

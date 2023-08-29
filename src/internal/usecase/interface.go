@@ -26,6 +26,10 @@ type UsersSegment interface {
 	Report(userID uint, startTime time.Time, endTime time.Time) ([]entity.UsersSegmentOperation, error)
 }
 
+type Report interface {
+	SaveReport(operations []entity.UsersSegmentOperation) (string, error)
+}
+
 type UserRepo interface {
 	Create(user *entity.User) (*entity.User, error)
 	UserExists(email string) (bool, error)
@@ -47,4 +51,8 @@ type UsersSegmentRepo interface {
 	DeleteAllUsersFromSegment(segmentID uint) error
 	DeleteUsersSegment(usersSegment *entity.SegmentUser) error
 	Report(userID uint, startTime time.Time, endTime time.Time) ([]entity.UsersSegmentOperation, error)
+}
+
+type ReportsRepo interface {
+	CreateCSVReport(operations [][]string) (string, error)
 }

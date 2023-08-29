@@ -1,5 +1,11 @@
 basePath: /v1
 definitions:
+  v1.ReportResponse:
+    properties:
+      fileLink:
+        example: http://localhost:8080/v1/reports/80ef1ba7-1045-41aa-a8a2-4c0aba407baf
+        type: string
+    type: object
   v1.Response:
     properties:
       data: {}
@@ -103,6 +109,33 @@ info:
   title: Users segments service API
   version: "1.0"
 paths:
+  /reports/{reportID}:
+    get:
+      consumes:
+      - application/json
+      description: Download a report
+      operationId: download
+      parameters:
+      - description: user ID
+        example: 80ef1ba7-1045-41aa-a8a2-4c0aba407baf
+        in: path
+        name: reportID
+        required: true
+        type: string
+      produces:
+      - application/pdf
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "404":
+          description: Not Found
+          schema:
+            type: file
+      summary: Download
+      tags:
+      - report
   /segments:
     get:
       consumes:
@@ -385,7 +418,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/v1.Response'
+            allOf:
+            - $ref: '#/definitions/v1.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/v1.ReportResponse'
+              type: object
         "400":
           description: Bad Request
           schema:

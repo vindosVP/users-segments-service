@@ -16,6 +16,46 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/reports/{reportID}": {
+            "get": {
+                "description": "Download a report",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/pdf"
+                ],
+                "tags": [
+                    "report"
+                ],
+                "summary": "Download",
+                "operationId": "download",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "80ef1ba7-1045-41aa-a8a2-4c0aba407baf",
+                        "description": "user ID",
+                        "name": "reportID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "file"
+                        }
+                    }
+                }
+            }
+        },
         "/segments": {
             "get": {
                 "description": "Returns all segments",
@@ -462,7 +502,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/v1.Response"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/v1.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/v1.ReportResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -482,6 +534,15 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "v1.ReportResponse": {
+            "type": "object",
+            "properties": {
+                "fileLink": {
+                    "type": "string",
+                    "example": "http://localhost:8080/v1/reports/80ef1ba7-1045-41aa-a8a2-4c0aba407baf"
+                }
+            }
+        },
         "v1.Response": {
             "type": "object",
             "properties": {
