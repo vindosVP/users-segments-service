@@ -5,6 +5,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 	"strconv"
+	"time"
 	"users-segments-service/internal/controller/http/v1/middleware"
 	"users-segments-service/internal/usecase"
 	"users-segments-service/pkg/database"
@@ -16,6 +17,7 @@ type UsersSegmentsRoutes struct {
 	u  usecase.User
 	s  usecase.Segment
 	us usecase.UsersSegment
+	ur usecase.Report
 	l  logger.Interface
 }
 
@@ -27,17 +29,102 @@ type usersSegmentsResponse struct {
 	UsersSegments []string `json:"usersSegments" example:"AVITO_VOICE_MESSAGES,AVITO_PERFORMANCE_VAS"`
 }
 
-func SetUsersSegmentsRoutes(handler fiber.Router, u usecase.User, s usecase.Segment, us usecase.UsersSegment, l logger.Interface) {
+type ReportResponse struct {
+	FileLink string `json:"fileLink" example:"http://localhost:8080/v1/reports/80ef1ba7-1045-41aa-a8a2-4c0aba407baf"`
+}
+
+func SetUsersSegmentsRoutes(handler fiber.Router, u usecase.User, s usecase.Segment, us usecase.UsersSegment, ur usecase.Report, l logger.Interface) {
 	r := &UsersSegmentsRoutes{
 		u:  u,
 		s:  s,
 		us: us,
+		ur: ur,
 		l:  l,
 	}
 	h := handler.Group("/users")
 	h.Get("/:userID/segments", r.get)
 	h.Post("/:userID/segments/add", middleware.GormTransaction(database.DB, l), r.add)
 	h.Post("/:userID/segments/delete", middleware.GormTransaction(database.DB, l), r.delete)
+	h.Get("/:userID/segments/report", r.report)
+}
+
+// @Summary     Get users segments report
+// @Description Returns link to a csv with user segments report
+// @ID          getUsersSegmentsReport
+// @Tags  	    users
+// @Accept      json
+// @Produce     json
+// @Param 		userID path string true "user ID" example(1)
+// @Param 		month query string true "month" example(8)
+// @Param 		year query string true "year" example(2023)
+// @Success     200 {object} Response{data=ReportResponse}
+// @Failure     400 {object} Response
+// @Failure     500 {object} Response
+// @Router      /users/:userID/segments/report [get]
+func (usr *UsersSegmentsRoutes) report(c *fiber.Ctx) error {
+
+	month := c.Query("month")
+	if month == "" {
+		return ErrorResponse(c, fiber.StatusBadRequest, "No month specified", nil, nil)
+	}
+	year := c.Query("year")
+	if year == "" {
+		return ErrorResponse(c, fiber.StatusBadRequest, "No year specified", nil, nil)
+	}
+
+	yearInt, err := strconv.Atoi(year)
+	if err != nil {
+		return ErrorResponse(c, fiber.StatusBadRequest, "Failed to parse year", nil, nil)
+	}
+
+	monthInt, err := strconv.Atoi(month)
+	if err != nil {
+		return ErrorResponse(c, fiber.StatusBadRequest, "Failed to parse month", nil, nil)
+	}
+	location, err := time.LoadLocation("Europe/Moscow")
+	if err != nil {
+		return ErrorResponse(c, fiber.StatusInternalServerError, "Failed to load location", nil, nil)
+	}
+
+	startTime := time.Date(yearInt, time.Month(monthInt), 1, 0, 0, 1, 0, location)
+	endTime := startTime.AddDate(0, 1, 0)
+
+	if !(monthInt > 0 && monthInt < 13) {
+		return ErrorResponse(c, fiber.StatusBadRequest, "Wrong month", nil, nil)
+	}
+
+	userID, err := strconv.ParseUint(c.Params("userID"), 10, 32)
+	if err != nil {
+		usr.l.Error(err, "v1 - report - strconv.ParseUint")
+		return ErrorResponse(c, fiber.StatusInternalServerError, MsgFailedToParseID, nil, err)
+	}
+
+	userExists, err := usr.u.UserExistsByID(uint(userID))
+	if err != nil && err != gorm.ErrRecordNotFound {
+		usr.l.Error(err, "v1 - report - usr.u.UserExistsByID")
+		return ErrorResponse(c, fiber.StatusInternalServerError, "Failed to check if user exists", nil, err)
+	}
+	if !userExists {
+		return ErrorResponse(c, fiber.StatusBadRequest, fmt.Sprintf("User with ID %d does not exist", userID), nil, ErrorUserDoesNotExist)
+	}
+
+	report, err := usr.us.Report(uint(userID), startTime, endTime)
+	if err != nil && err != gorm.ErrRecordNotFound {
+		usr.l.Error(err, "v1 - report - usr.us.Report")
+		return ErrorResponse(c, fiber.StatusInternalServerError, "Failed to get report", nil, err)
+	}
+
+	reportFileName, err := usr.ur.SaveReport(report)
+	if err != nil {
+		usr.l.Error(err, "v1 - report - usr.ur.SaveReport")
+		return ErrorResponse(c, fiber.StatusInternalServerError, "Failed to save report", nil, err)
+	}
+
+	resp := &ReportResponse{
+		FileLink: fmt.Sprintf("http://localhost:8080/v1/reports/%s", reportFileName),
+	}
+
+	return OkResponse(c, fiber.StatusOK, "OK", resp)
 }
 
 // @Summary     Get users segments

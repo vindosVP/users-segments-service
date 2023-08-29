@@ -9,7 +9,8 @@ type Config struct {
 }
 
 type App struct {
-	Port string `env:"APP_PORT" envDefault:"8080"`
+	Port             string `env:"APP_PORT" envDefault:"8080"`
+	ReportsDirectory string `env:"REPORT_DIRECTORY" envDefault:"./reports"`
 }
 
 type DB struct {

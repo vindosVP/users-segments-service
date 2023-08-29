@@ -16,6 +16,8 @@ services:
     ports:
       - "8080:3000"
     command: go run ./cmd/app/main.go
+    volumes:
+      - ./reports:/usr/src/app/reports
 
 volumes:
   postgres:
