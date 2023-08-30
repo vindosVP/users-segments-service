@@ -46,6 +46,10 @@ git clone https://github.com/vindosVP/users-segments-service.git
 2. Запускаем
 
 ```Shell
+cd users-segments-service
+```
+
+```Shell
 docker-compose up
 ```
 ### API
